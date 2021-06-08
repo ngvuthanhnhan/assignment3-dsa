@@ -5,11 +5,11 @@
 
 
 class ReplacementPolicy {
-	protected:
+protected:
 	int count;
 	Elem** arr;
 	
-	public:
+public:
 	virtual int insert(Elem* e,int idx) = 0;//insert e into arr[idx] if idx != -1 else into the position by replacement policy
 	virtual void access(int idx) = 0;//idx is index in the cache of the accessed element 
 	virtual int remove() = 0; 
@@ -27,8 +27,8 @@ class ReplacementPolicy {
 
 class SearchEngine {
 	public:
-	virtual int search(int key) = 0; // -1 if not found
-	virtual void insert(int key,int idx) = 0;
+	virtual Data* search(int key) = 0; // -1 if not found
+    virtual void insert(const Elem &value) = 0;
 	virtual	void deleteNode(int key) = 0;
 	virtual void print(ReplacementPolicy* r) = 0;
 };
@@ -67,27 +67,81 @@ class LFU: public ReplacementPolicy {
 	void print(){}
 };
 
-class DBHashing: public SearchEngine {public:
-	DBHashing(int (*h1)(int),int (*h2)(int),int s){}
+enum STATUS_TYPE { NIL, NON_EMPTY, DELETED };
+class HashNode {
+public:
+    int addr;
+    STATUS_TYPE status;
+    Data* data;
+
+    HashNode() {};
+    ~HashNode() {};
+};
+
+class DBHashing: public SearchEngine {
+private:
+    HashNode* HashTable;
+
+    int (*h1)(int);
+    int (*h2)(int);
+    int s;
+
+public:
+	DBHashing(int (*h1)(int),int (*h2)(int),int s) {
+	    this->h1 = h1;
+	    this->h2 = h2;
+	    this->s = s;
+	    this->HashTable = new HashNode[s];
+	}
 	~DBHashing(){}
-	void insert(int key,int i){}
-	void deleteNode(int key){}
-	void print(ReplacementPolicy* q){}
-	int search(int key) {return 0;}
+
+    void insert(const Elem &value);
+	void deleteNode(int key);
+	void print(ReplacementPolicy* q);
+    Data* search(int key);
 };
+
+enum BalanceValue {
+    LH = -1,
+    EH = 0,
+    RH = 1
+};
+
+class Node {
+public:
+    Elem el;
+    Node *left;
+    Node *right;
+    BalanceValue balance;
+
+    Node(const Elem &val): el(val), left(nullptr), right(nullptr), balance(EH) {};
+    void inOrder();
+    void preOrder();
+};
+
 class AVL : public SearchEngine {
-	public:
-		AVL() {}
-		~AVL() {}
-		void insert(int key,int i){}
-		void deleteNode(int key){}
-		void print(ReplacementPolicy* q) {}
-		int search(int key){return 0;}
+public:
+    Node *root;
+protected:
+    Node *rotateRight(Node *&node);
+    Node *rotateLeft(Node *&node);
+    Node *leftBalance(Node *&node, bool &taller);
+    Node *rightBalance(Node *&node, bool &taller);
+    Node *removeLeftBalance(Node *&node, bool &shorter);
+    Node *removeRightBalance(Node *&node, bool &shorter);
+    Node *insertRec(Node *&node, const Elem &value, bool &taller);
+    Node *removeRec(Node *&node, const int &addr, bool &shorter, bool &success);
+
+    Node* findUtility(Node* node, const int &key);
+//    Node* insertUtility(const Elem &value);
+//    Node* deleteUtility(const int &key);
+public:
+    AVL() {}
+    ~AVL() {}
+    void insert(const Elem &value);
+    void deleteNode(int key);
+    void print(ReplacementPolicy* q);
+    Data* search(int key);
 };
-
-
-
-
-
 
 #endif

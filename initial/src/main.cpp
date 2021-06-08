@@ -107,9 +107,10 @@ void simulate(string filename)
 	delete c;
 }
 int main(int argc, char* argv[]) {
-	if (argc < 2)
-    	return 1;
-  	const char *fileName = argv[1];
+//	if (argc < 2)
+//    	return 1;
+//  	const char *fileName = argv[1];
+    const char *fileName = "../tests/test1.txt";
     simulate(string(fileName));
 	return 0;
 }
