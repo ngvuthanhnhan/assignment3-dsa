@@ -265,10 +265,15 @@ void DBHashing::insert(const Elem &value) {
 }
 
 void DBHashing::deleteNode(int key) {
-    Data* ret = search(key);
-    if (ret != nullptr) {
-        
-    }
+    int i = 0, slot;
+    do {
+        slot = (this->h1(key) + i*this->h2(key)) % this->s;
+        if (this->HashTable[slot].addr == key) {
+            this->HashTable[slot].status = DELETED;
+            return;
+        }
+        i++;
+    } while (this->HashTable[slot].status == NIL && i < this->s);
 }
 
 Data *DBHashing::search(int key) {
@@ -285,4 +290,33 @@ Data *DBHashing::search(int key) {
 
 void DBHashing::print(ReplacementPolicy *q) {
 //    Chưa có ai chơi
+}
+
+int FIFO::insert(Elem *e, int idx) {
+    if (idx != -1) {
+        if (isFull()) {
+            exit(EXIT_FAILURE);
+        }
+        rear = (rear + 1) % capacity;
+        arr[rear] = e;
+        count++;
+    }
+}
+
+int FIFO::remove() {
+    if (isEmpty()) {
+        exit(EXIT_FAILURE);
+    }
+    front = (front + 1) % capacity;
+    count--;
+}
+
+void FIFO::access(int idx) {
+    // ??
+}
+
+void FIFO::print() {
+    for (int i = 0; i < this->count; i++) {
+        arr[(front + i) % capacity]->print();
+    }
 }

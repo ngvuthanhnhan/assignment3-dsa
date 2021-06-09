@@ -10,15 +10,21 @@ protected:
 	Elem** arr;
 	
 public:
-	virtual int insert(Elem* e,int idx) = 0;//insert e into arr[idx] if idx != -1 else into the position by replacement policy
-	virtual void access(int idx) = 0;//idx is index in the cache of the accessed element 
+	virtual int insert(Elem* e, int idx) = 0; //insert e into arr[idx] if idx != -1 else into the position by replacement policy
+	virtual void access(int idx) = 0; //idx is index in the cache of the accessed element
 	virtual int remove() = 0; 
 	virtual void print() = 0;
 	
-	bool isFull() {return count == MAXSIZE;}
-	bool isEmpty() {return count == 0;}
-	Elem* getValue(int idx){return arr[idx];}
-	void replace(int idx,Elem* e) {
+	bool isFull() {
+	    return count == MAXSIZE;
+	}
+	bool isEmpty() {
+	    return count == 0;
+	}
+	Elem* getValue(int idx){
+	    return arr[idx];
+	}
+	void replace(int idx, Elem* e) {
 		delete arr[idx];
 		access(idx);
 		arr[idx] = e;
@@ -27,30 +33,37 @@ public:
 
 class SearchEngine {
 	public:
-	virtual Data* search(int key) = 0; // -1 if not found
+	virtual Data* search(int key) = 0; // nullptr if not found
     virtual void insert(const Elem &value) = 0;
 	virtual	void deleteNode(int key) = 0;
 	virtual void print(ReplacementPolicy* r) = 0;
 };
 
 class FIFO : public ReplacementPolicy {
-	public:
-	FIFO(){count = 0; arr = new Elem*[MAXSIZE];}
-	~FIFO(){}
-	int insert(Elem* e,int idx){return 0;}
-	void access(int idx) {}
-	int remove(){return 0;}
-	void print(){}
+private:
+    int front, rear, capacity;
+public:
+	FIFO() {
+	    count = 0;
+	    arr = new Elem*[MAXSIZE];
+	    this->capacity = MAXSIZE;
+        this->rear = -1;
+	}
+	~FIFO() {}
+	int insert(Elem* e, int idx);
+	void access(int idx);
+	int remove();
+	void print();
 };
 
 class MRU : public ReplacementPolicy {
 	public:
 	MRU(){}
 	~MRU(){}
-	int insert(Elem* e,int idx){return 0;}
-	void access(int idx){}
-	int remove(){return 0;}
-	void print(){}
+	int insert(Elem* e, int idx);
+	void access(int idx);
+	int remove();
+	void print();
 };
 class LRU: public MRU {
 	public:
