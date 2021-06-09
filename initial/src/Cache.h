@@ -10,10 +10,11 @@ protected:
 	Elem** arr;
 	
 public:
-	virtual int insert(Elem* e, int idx) = 0; //insert e into arr[idx] if idx != -1 else into the position by replacement policy
+	virtual int insert(Elem* e) = 0; //insert e into arr[idx] if idx != -1 else into the position by replacement policy
 	virtual void access(int idx) = 0; //idx is index in the cache of the accessed element
 	virtual int remove() = 0; 
 	virtual void print() = 0;
+    virtual Elem* peek() = 0;
 	
 	bool isFull() {
 	    return count == MAXSIZE;
@@ -50,34 +51,44 @@ public:
         this->rear = -1;
 	}
 	~FIFO() {}
-	int insert(Elem* e, int idx);
+	int insert(Elem* e);
 	void access(int idx);
 	int remove();
 	void print();
+    Elem* peek();
 };
 
 class MRU : public ReplacementPolicy {
-	public:
-	MRU(){}
+public:
+	MRU() {
+	    count = 0;
+	    arr = new Elem* [MAXSIZE];
+	}
 	~MRU(){}
-	int insert(Elem* e, int idx);
+
+	int findIndexByAddr(int addr);
+
+	int insert(Elem* e);
 	void access(int idx);
 	int remove();
 	void print();
+    Elem* peek();
 };
 class LRU: public MRU {
-	public:
-	int remove() override {return 0;}
+public:
+	int remove() override;
+    Elem* peek() override;
 };
 
 class LFU: public ReplacementPolicy {
-	public:
+public:
 	LFU(){}
 	~LFU(){}
-	int insert(Elem* e,int idx){return 0;}
+	int insert(Elem* e){return 0;}
 	void access(int idx){}
 	int remove(){return 0;}
 	void print(){}
+    Elem* peek();
 };
 
 enum STATUS_TYPE { NIL, NON_EMPTY, DELETED };

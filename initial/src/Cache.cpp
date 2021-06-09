@@ -1,23 +1,61 @@
 #include "main.h"
 #include "Cache.h"
 
-Cache::Cache(SearchEngine* s,ReplacementPolicy* r):rp(r),s_engine(s) {}
+Cache::Cache(SearchEngine* s,ReplacementPolicy* r):rp(r), s_engine(s) {}
 Cache::~Cache(){
 	delete rp;
 	delete s_engine;
 }
 Data* Cache::read(int addr) {
-    return NULL;
+    Data* ret = s_engine->search(addr);
+    return ret;
 }
 Elem* Cache::put(int addr, Data* cont) {
-    return NULL;
+    Data* ret = s_engine->search(addr);
+    if (ret != nullptr) {
+        Elem* rElem = new Elem(addr, cont, true);
+        return rElem;
+    } else {
+        Elem* result = nullptr;
+        if (rp->isFull()) {
+            result = rp->peek();
+            rp->remove();
+            s_engine->deleteNode(addr);
+        }
+        Elem* rElem = new Elem(addr, cont, true);
+        s_engine->insert(*rElem);
+        rp->insert(rElem);
+        return result;
+    }
 }
+
 Elem* Cache::write(int addr, Data* cont) {
-    return NULL;
+    Data* ret = s_engine->search(addr);
+    if (ret != nullptr) {
+        Elem* rElem = new Elem(addr, cont, false);
+        return rElem;
+    } else {
+        Elem* result = nullptr;
+        if (rp->isFull()) {
+            result = rp->peek();
+            rp->remove();
+            s_engine->deleteNode(addr);
+        }
+        Elem* rElem = new Elem(addr, cont, false);
+        s_engine->insert(*rElem);
+        rp->insert(rElem);
+        return result;
+    }
 }
+
 void Cache::printRP() {
+    cout << "Print replacement buffer\n";
+    rp->print();
 }
+
 void Cache::printSE() {
+    cout << "\nPrint search buffer\n";
+    s_engine->print(rp);
 }
 
 void Node::inOrder() {
@@ -292,23 +330,23 @@ void DBHashing::print(ReplacementPolicy *q) {
 //    Chưa có ai chơi
 }
 
-int FIFO::insert(Elem *e, int idx) {
-    if (idx != -1) {
-        if (isFull()) {
-            exit(EXIT_FAILURE);
-        }
-        rear = (rear + 1) % capacity;
-        arr[rear] = e;
-        count++;
+int FIFO::insert(Elem *e) {
+    if (isFull()) {
+        return -1;
     }
+    rear = (rear + 1) % capacity;
+    arr[rear] = e;
+    count++;
+    return 1;
 }
 
 int FIFO::remove() {
     if (isEmpty()) {
-        exit(EXIT_FAILURE);
+        return -1;
     }
     front = (front + 1) % capacity;
     count--;
+    return 1;
 }
 
 void FIFO::access(int idx) {
@@ -319,4 +357,79 @@ void FIFO::print() {
     for (int i = 0; i < this->count; i++) {
         arr[(front + i) % capacity]->print();
     }
+}
+
+Elem *FIFO::peek() {
+    return arr[front];
+}
+
+void MRU::access(int idx) {
+    // ??
+}
+
+int MRU::insert(Elem *e) {
+    if (isFull()) {
+        return -1;
+    }
+    int index = this->findIndexByAddr(e->addr);
+    if (index == -1) {
+        int i = count;
+        while (i > 0) {
+            arr[i] = arr[--i];
+        }
+        arr[i] = e;
+
+        count++;
+    } else {
+        int i = index;
+        while (i > 0) {
+            arr[i] = arr[--i];
+        }
+        arr[i] = e;
+    }
+    return 1;
+}
+
+int MRU::remove() { // Take arr[0] out of its siblings, move the rest to front.
+    if (isEmpty()) {
+        return -1;
+    }
+    int i = 0;
+    while (i < count) {
+        arr[i] = arr[i + 1];
+        i++;
+    }
+    count--;
+    return 1;
+}
+
+void MRU::print() {
+    for (int i = 0; i < this->count; i++) {
+        arr[i]->print();
+    }
+}
+
+int MRU::findIndexByAddr(int addr) {
+    for (int i = 0; i < this->count; i++) {
+        if (arr[i]->addr == addr) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+Elem *MRU::peek() {
+    return arr[0];
+}
+
+int LRU::remove() { // Take arr[count - 1] out of its siblings.
+    if (isEmpty()) {
+        return -1;
+    }
+    count--;
+    return 1;
+}
+
+Elem *LRU::peek() {
+    return arr[count - 1];
 }
