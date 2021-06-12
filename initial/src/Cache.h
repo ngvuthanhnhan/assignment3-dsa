@@ -34,8 +34,8 @@ public:
 
 class SearchEngine {
 	public:
-	virtual Data* search(int key) = 0; // nullptr if not found
-    virtual void insert(const Elem &value) = 0;
+	virtual Elem* search(int key) = 0; // nullptr if not found
+    virtual void insert(Elem *value) = 0;
 	virtual	void deleteNode(int key) = 0;
 	virtual void print(ReplacementPolicy* r) = 0;
 };
@@ -48,6 +48,7 @@ public:
 	    count = 0;
 	    arr = new Elem*[MAXSIZE];
 	    this->capacity = MAXSIZE;
+	    this->front = 0;
         this->rear = -1;
 	}
 	~FIFO() {}
@@ -96,7 +97,7 @@ class HashNode {
 public:
     int addr;
     STATUS_TYPE status;
-    Data* data;
+    Elem* data;
 
     HashNode() {};
     ~HashNode() {};
@@ -119,10 +120,10 @@ public:
 	}
 	~DBHashing(){}
 
-    void insert(const Elem &value);
+    void insert(Elem *value);
 	void deleteNode(int key);
 	void print(ReplacementPolicy* q);
-    Data* search(int key);
+    Elem* search(int key);
 };
 
 enum BalanceValue {
@@ -133,12 +134,12 @@ enum BalanceValue {
 
 class Node {
 public:
-    Elem el;
+    Elem * el;
     Node *left;
     Node *right;
     BalanceValue balance;
 
-    Node(const Elem &val): el(val), left(nullptr), right(nullptr), balance(EH) {};
+    Node(Elem *val): el(val), left(nullptr), right(nullptr), balance(EH) {};
     void inOrder();
     void preOrder();
 };
@@ -153,19 +154,21 @@ protected:
     Node *rightBalance(Node *&node, bool &taller);
     Node *removeLeftBalance(Node *&node, bool &shorter);
     Node *removeRightBalance(Node *&node, bool &shorter);
-    Node *insertRec(Node *&node, const Elem &value, bool &taller);
+    Node *insertRec(Node *&node, Elem *value, bool &taller);
     Node *removeRec(Node *&node, const int &addr, bool &shorter, bool &success);
 
     Node* findUtility(Node* node, const int &key);
 //    Node* insertUtility(const Elem &value);
 //    Node* deleteUtility(const int &key);
 public:
-    AVL() {}
+    AVL() {
+        root = nullptr;
+    }
     ~AVL() {}
-    void insert(const Elem &value);
+    void insert(Elem *value);
     void deleteNode(int key);
     void print(ReplacementPolicy* q);
-    Data* search(int key);
+    Elem* search(int key);
 };
 
 #endif

@@ -7,67 +7,67 @@ Cache::~Cache(){
 	delete s_engine;
 }
 Data* Cache::read(int addr) {
-    Data* ret = s_engine->search(addr);
-    return ret;
+    Elem* ret = s_engine->search(addr);
+    return ret ? ret->data : nullptr;
 }
 Elem* Cache::put(int addr, Data* cont) {
-    Data* ret = s_engine->search(addr);
+    Elem* ret = s_engine->search(addr);
     if (ret != nullptr) {
-        Elem* rElem = new Elem(addr, cont, true);
+        Elem* rElem = new Elem(ret->addr, ret->data, ret->sync);
+        ret->data = cont;
+        ret->sync = true;
         return rElem;
     } else {
         Elem* result = nullptr;
         if (rp->isFull()) {
             result = rp->peek();
             rp->remove();
-            s_engine->deleteNode(addr);
+            s_engine->deleteNode(result->addr);
         }
         Elem* rElem = new Elem(addr, cont, true);
-        s_engine->insert(*rElem);
+        s_engine->insert(rElem);
         rp->insert(rElem);
         return result;
     }
 }
 
 Elem* Cache::write(int addr, Data* cont) {
-    Data* ret = s_engine->search(addr);
+    Elem* ret = s_engine->search(addr);
     if (ret != nullptr) {
-        Elem* rElem = new Elem(addr, cont, false);
+        Elem* rElem = new Elem(ret->addr, ret->data, ret->sync);
+        ret->data = cont;
+        ret->sync = false;
         return rElem;
     } else {
         Elem* result = nullptr;
         if (rp->isFull()) {
             result = rp->peek();
             rp->remove();
-            s_engine->deleteNode(addr);
+            s_engine->deleteNode(result->addr);
         }
         Elem* rElem = new Elem(addr, cont, false);
-        s_engine->insert(*rElem);
+        s_engine->insert(rElem);
         rp->insert(rElem);
         return result;
     }
 }
 
 void Cache::printRP() {
-    cout << "Print replacement buffer\n";
     rp->print();
 }
 
 void Cache::printSE() {
-    cout << "\nPrint search buffer\n";
     s_engine->print(rp);
 }
 
 void Node::inOrder() {
-    cout << "Print AVL in inorder:\n";
     if (left) left->inOrder();
-    el.print();
+    el->print();
     if (right) right->inOrder();
 }
 
 void Node::preOrder() {
-    cout << "\nPrint AVL in preorder:\n";
-    el.print();
+    el->print();
     if (left) left->preOrder();
     if (right) right->preOrder();
 }
@@ -160,12 +160,12 @@ Node *AVL::removeRightBalance(Node *&node, bool &shorter) {
     return node;
 }
 
-Node *AVL::insertRec(Node *&node, const Elem &value, bool &taller) {
+Node *AVL::insertRec(Node *&node, Elem *value, bool &taller) {
     if (node == nullptr) {
         node = new Node(value);
         taller = true;
     } else {
-        if (value.addr < node->el.addr) {
+        if (value->addr < node->el->addr) {
             insertRec(node->left, value, taller);
 
             if (taller) {
@@ -202,7 +202,7 @@ Node *AVL::removeRec(Node *&node, const int &addr, bool &shorter, bool &success)
         return nullptr;
     }
 
-    if (addr < node->el.addr) {
+    if (addr < node->el->addr) {
         removeRec(node->left, addr, shorter, success);
         if (shorter) {
             if (node->balance == LH) {
@@ -214,7 +214,7 @@ Node *AVL::removeRec(Node *&node, const int &addr, bool &shorter, bool &success)
                 removeRightBalance(node, shorter);
             }
         }
-    } else if (addr > node->el.addr) {
+    } else if (addr > node->el->addr) {
         removeRec(node->right, addr, shorter, success);
         if (shorter) {
             if (node->balance == RH) {
@@ -238,7 +238,7 @@ Node *AVL::removeRec(Node *&node, const int &addr, bool &shorter, bool &success)
                 dltp = dltp->right;
             }
             node->el = dltp->el;
-            removeRec(node->left, dltp->el.addr, shorter, success);
+            removeRec(node->left, dltp->el->addr, shorter, success);
             if (shorter) {
                 if (node->balance == LH) {
                     node->balance = EH;
@@ -258,24 +258,24 @@ Node *AVL::findUtility(Node *node, const int &key) {
     if (node == nullptr) {
         return nullptr;
     }
-    if (key < node->el.addr) {
+    if (key < node->el->addr) {
         return findUtility(node->left, key);
-    } else if (key > node->el.addr) {
+    } else if (key > node->el->addr) {
         return findUtility(node->right, key);
     } else {
         return node;
     }
 }
 
-Data *AVL::search(int key) {
+Elem *AVL::search(int key) {
     Node* ret = findUtility(this->root, key);
     if (ret != nullptr) {
-        return ret->el.data;
+        return ret->el;
     }
     return nullptr;
 }
 
-void AVL::insert(const Elem &value) {
+void AVL::insert(Elem *value) {
     bool taller = false;
     this->insertRec(this->root, value, taller);
 }
@@ -287,14 +287,19 @@ void AVL::deleteNode(int key) {
 
 void AVL::print(ReplacementPolicy *q) {
 //    Chưa có ai chơi
+
+    cout << "Print AVL in inorder:\n";
+    this->root->inOrder();
+    cout << "Print AVL in preorder:\n";
+    this->root->preOrder();
 }
 
-void DBHashing::insert(const Elem &value) {
-    int key = value.addr, i = 0;
+void DBHashing::insert(Elem *value) {
+    int key = value->addr, i = 0;
     while (i < this->s) {
         int slot = (this->h1(key) + i*this->h2(key)) % this->s;
         if (this->HashTable[slot].status == NIL || this->HashTable[slot].status == DELETED) {
-            this->HashTable[slot].data = value.data;
+            this->HashTable[slot].data = value;
             this->HashTable[slot].status = NON_EMPTY;
         } else {
             i++;
@@ -314,7 +319,7 @@ void DBHashing::deleteNode(int key) {
     } while (this->HashTable[slot].status == NIL && i < this->s);
 }
 
-Data *DBHashing::search(int key) {
+Elem *DBHashing::search(int key) {
     int i = 0, slot;
     do {
         slot = (this->h1(key) + i*this->h2(key)) % this->s;
