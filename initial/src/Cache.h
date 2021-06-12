@@ -88,7 +88,7 @@ public:
 	void access(int idx){}
 	int remove(){return 0;}
 	void print(){}
-    Elem* peek();
+    Elem* peek(){return nullptr;}
 };
 
 enum STATUS_TYPE { NIL, NON_EMPTY, DELETED };
