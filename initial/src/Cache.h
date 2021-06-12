@@ -88,7 +88,7 @@ public:
 	void access(int idx){}
 	int remove(){return 0;}
 	void print(){}
-    Elem* peek();
+    Elem* peek(){return nullptr;}
 };
 
 enum STATUS_TYPE { NIL, NON_EMPTY, DELETED };
@@ -160,7 +160,9 @@ protected:
 //    Node* insertUtility(const Elem &value);
 //    Node* deleteUtility(const int &key);
 public:
-    AVL() {}
+    AVL() {
+        this->root = nullptr;
+    }
     ~AVL() {}
     void insert(const Elem &value);
     void deleteNode(int key);

@@ -49,12 +49,12 @@ Elem* Cache::write(int addr, Data* cont) {
 }
 
 void Cache::printRP() {
-    cout << "Print replacement buffer\n";
+//    cout << "Print replacement buffer\n";
     rp->print();
 }
 
 void Cache::printSE() {
-    cout << "\nPrint search buffer\n";
+//    cout << "\nPrint search buffer\n";
     s_engine->print(rp);
 }
 
